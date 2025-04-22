@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Companies</title>
+</head>
+<body>
+<h1>Companies</h1>
+
+<p>Активный API: <strong>{{ active_api }}</strong></p>
+
+<p>
+    Переключить API:
+    <a href="{{ path('company_index', { use_api: 'fmp' }) }}">FMP</a> |
+    <a href="{{ path('company_index', { use_api: 'yahoo' }) }}">Yahoo</a>
+</p>
+
+<form id="symbol-form" method="POST">
+    <label>Код компании (например, AAPL):</label>
+    <input type="text" name="symbol" required>
+    <button type="submit">Загрузить</button>
+</form>
+
+<div id="response-message" style="margin-top: 10px;"></div>
+
+{% for label, messages in app.flashes %}
+    {% for msg in messages %}
+        <p style="color: green">{{ msg }}</p>
+    {% endfor %}
+{% endfor %}
+
+<h2>Список компаний</h2>
+<table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+        <th>Symbol</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Volume</th>
+        <th>EPS</th>
+        <th>Open</th>
+        <th>Previous Close</th>
+    </tr>
+    {% for c in companies %}
+        <tr>
+            <td>{{ c.symbol }}</td>
+            <td>{{ c.name }}</td>
+            <td>{{ c.metrics.price ?? '' }}</td>
+            <td>{{ c.metrics.volume ?? '' }}</td>
+            <td>{{ c.metrics.eps ?? '' }}</td>
+            <td>{{ c.open }}</td>
+            <td>{{ c.previousClose }}</td>
+        </tr>
+    {% endfor %}
+</table>
+<script>
+    document.getElementById('symbol-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const symbol = form.symbol.value;
+        const messageDiv = document.getElementById('response-message');
+
+        fetch(form.action || window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: new URLSearchParams({ symbol }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                messageDiv.innerHTML = `<p style="color: green">${data.message}</p>`;
+                form.reset();
+            })
+            .catch(err => {
+                messageDiv.innerHTML = `<p style="color: red">Ошибка: ${err.message}</p>`;
+            });
+    });
+</script>
+
+</body>
+</html>

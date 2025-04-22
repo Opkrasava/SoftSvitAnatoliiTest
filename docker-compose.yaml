@@ -17,7 +17,13 @@ services:
     environment:
       DATABASE_URL: "postgresql://symfony:symfony@db:5432/symfony_db"
       REDIS_URL: redis://redis
-    command: bash -c "composer install && php -S 0.0.0.0:8000 -t public"
+    command: >
+      bash -c "
+        composer install --no-interaction &&
+        php bin/console doctrine:migrations:migrate --no-interaction &&
+        php bin/console messenger:consume async --no-interaction & 
+        php -S 0.0.0.0:8000 -t public
+      "
 
   db:
     image: postgres:15
