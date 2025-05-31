@@ -30,11 +30,27 @@ class Company
     #[ORM\Column]
     private ?float $previousClose = null;
 
+    #[ORM\OneToOne(mappedBy: 'company', cascade: ['persist', 'remove'])]
+    private ?CompanyCountry $companyCountry = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
+
+    public function __construct()
+    {
+        $this->companyCountry = new CompanyCountry();
+        $this->companyCountry->setCompany($this); // если в CompanyCountry есть ссылка обратно
+    }
+
+    public function getCompanyCountry(): ?CompanyCountry { return $this->companyCountry; }
+    public function setCompanyCountry(?CompanyCountry $companyCountry): self
+    {
+        $this->companyCountry = $companyCountry;
+        return $this;
+    }
 
     public function getId(): ?int
     {
